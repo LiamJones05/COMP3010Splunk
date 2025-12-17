@@ -2,8 +2,11 @@
 ## Security Operations Investigation Report
 
 **Course:** COMP3010 Security Operations & Incident Management
+
 **Dataset:** BOTSv3 (Boss of the SOC v3 – Splunk)
+
 **Author:** Liam Jones
+
 **Tools**: Splunk Enterprise, SPL (Search Processing Language)
 
 ------------------------------------------------------------------------
@@ -14,8 +17,9 @@
 3. [Installation Data Preparation](#installation-data-preparation)
 4. [Guided Questions Investigation Findings](#guided-questions-investigation-findings)
 5. [Conclusion Lessons Learned](#conclusion-lessons-learned)
-6. [Video Presentation](#video-presentation)
-7. [References](#references)
+6. [Use of Artificial Intelligence in SOC Investigation ](#use-of-artificial-intelligence-in-soc-investigation)
+7. [Video Presentation](#video-presentation)
+8. [References](#references)
 
 
 ------------------------------------------------------------------------
@@ -26,7 +30,7 @@
 
 Security Operations Centres (SOCs) are responsible for continuous monitoring, detection, analysis, and response to security incidents across enterprise environments. Modern SOCs rely heavily on Security Information and Event Management (SIEM) platforms such as Splunk to correlate large volumes of telemetry from cloud, endpoint, network, and application sources.
 
-The Boss of the SOC version 3 (BOTSv3) dataset is a publicly available, pre-indexed security dataset developed by Splunk. It simulates a realistic multi-stage security incident affecting a fictional brewing company named Frothly. The dataset includes logs from Amazon Web Services (AWS), Windows endpoints, network devices, and application services.
+The BOTSv3 dataset is a publicly available, pre-indexed security dataset developed by Splunk. It simulates a realistic multi-stage security incident affecting a fictional brewing company named Frothly. The dataset includes logs from Amazon Web Services (AWS), Windows endpoints, network devices, and application services.
 
 ### Objective and Scope
 
@@ -336,21 +340,39 @@ bstoll-l.froth.ly
 ## Conclusion Lessons Learned
 
 
-This investigation demonstrates how SIEM platforms such as Splunk enable SOC analysts to reconstruct security incidents using log correlation and structured analysis. Key lessons include:
+This investigation demonstrates how a Security Operations Centre (SOC) leverages SIEM capabilities to reconstruct and analyse security incidents through structured log correlation and evidence-based reasoning. By analysing the BOTSv3 dataset using Splunk, this report replicated the responsibilities of a Tier 2 SOC Analyst, focusing on validation, contextual analysis, and attribution rather than automated alert triage.
 
-Cloud misconfigurations remain a high-impact threat vector.
+The investigation identified a series of security-relevant events impacting Frothly’s cloud and endpoint environments. Key findings included the detection of AWS IAM activity performed without multi-factor authentication, a misconfigured S3 bucket exposing data to public access, successful external interaction with the exposed resource, and endpoint operating system deviations indicative of privileged or higher-risk assets. These findings collectively demonstrate how seemingly minor configuration weaknesses can be chained together to increase organisational risk.
 
-Identity and access monitoring is critical for AWS environments.
+From a SOC perspective, this exercise highlights several critical operational lessons. Cloud misconfigurations, particularly within object storage services such as Amazon S3, remain a high-impact and frequently exploited attack vector. Continuous monitoring of IAM activity, enforcement of MFA, and detection of insecure API calls are essential to reducing the likelihood of credential misuse and unauthorised access. Additionally, asset baseline validation, including hardware and operating system consistency, plays a vital role in identifying high-value endpoints and prioritising investigative efforts during incident response.
 
-Endpoint inconsistencies can reveal high-value assets.
+This investigation also reinforces the importance of clear attribution and evidence preservation. Identifying the IAM user responsible for the misconfiguration enabled accurate incident scoping, appropriate escalation, and targeted remediation. In a production SOC environment, such attribution would directly inform containment actions, access reviews, and policy enforcement.
 
-From a SOC perspective, improvements could include:
+Based on findings, several SOC improvements can be recommended:
+- Implementation of automated detections for **public S3 bucket ACL changes**
 
-Automated detection for public S3 ACLs
+- Alerting on **AWS API activity executed without MFA**
 
-MFA enforcement alerts
+- Continuous monitoring for **endpoint baseline deviations**
 
-Baseline deviation monitoring for endpoints
+-Integration of cloud security posture management (CSPM) controls to reduce misconfiguration risk
+
+Overall, this BOTSv3 investigation demonstrates the effectiveness of SIEM-driven analysis in supporting SOC incident response workflows. It reinforces the value of structured investigation, log correlation, and contextual understanding in detecting, analysing, and responding to security incidents in modern hybrid environments.
+
+## Use of Artificial Intelligence in SOC Investigation
+
+Artificial Intelligence (AI) is increasingly used within SOCs to support analysts in managing large volumes of security data and complex investigations. 
+In the context of this BOTSv3 investigation, AI can be viewed as a **supporting tool** that augments analyst capability rather than replacing human decision-making.
+
+AI-assisted technologies can provide clear benefits during the **detection and analysis** phases of the incident response lifecycle. 
+Tools such as machine learning models and large language models can assist analysts by summarising large datasets, suggesting relevant SPL queries, explaining unfamiliar log fields, and providing contextual information about cloud services such as AWS. 
+This can reduce investigation time, lower cognitive load, and help analysts focus on higher-value analytical tasks.
+
+Within this assignment, AI could be effectively used to support query development, interpret CloudTrail and endpoint telemetry, and assist with documenting findings in a clear and structured SOC-style format. When used appropriately, AI can improving efficiency and consistency across investigative workflows.
+
+However, the use of AI also introduces important limitations. AI systems lack full environmental context and may generate inaccurate or oversimplified conclusions if their output is not critically reviewed. Over-reliance on AI can lead to false confidence, missed indicators of compromise, or inappropriate investigative decisions. Additionally, the use of external AI tools raises concerns around **data sensitivity, confidentiality, and governance**, particularly when handling security logs.
+
+From a SOC standards perspective, AI is most effective when used as a **partnered capability**, supporting analysts while accountability, contextual reasoning, and final decision-making remain firmly under human control.
 
 ## Video Presentation
 
