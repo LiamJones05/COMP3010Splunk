@@ -106,7 +106,59 @@ Privileged access monitoring
 
 Attribution during incident response
 
-📸 Evidence: evidence/q1_iam_users.png
+📸 Evidence: evidence/q1_iam_users.png  
+
+
+Question 2 - AWS API Activity Without MFA
+
+Objective: Identify the field used to alert that AWS API activity has occurred without MFA
+
+SOC Relevance: Monitoring for AWS API activity without MFA is critical because it indicates increased risk of credential compromise. SOC teams commonly alert on CloudTrail events where privileged actions are performed without MFA, excluding interactive console logins, to detect policy violations or attacker persistence.
+
+SPL Query:
+
+index=botsv3 sourcetype="aws:cloudtrail"
+| search NOT eventName="ConsoleLogin" userIdentity.sessionContext.attributes.mfaAuthenticated=false
+
+Findings:
+
+Analysis of AWS CloudTrail logs identified API activity executed without multi-factor authentication. The field userIdentity.sessionContext.attributes.mfaAuthenticated explicitly indicates whether MFA was used during the session. Events where this value is set to false, excluding ConsoleLogin, represent elevated risk and would typically trigger SOC alerts under AWS security best practice guidelines.
+
+📸 Evidence: evidence/q2_mfa_false.png  
+
+
+Question 3 - Processor Number on Web Servers
+
+Objective: Identify the processor number used on the web servers
+
+SOC Relevance:
+
+- Hardware telemetry helps SOC teams:
+
+- Validate asset baselines
+
+- Identify anomalies or rogue systems
+
+Support forensic investigations
+
+SPL Query Used:
+
+Identify host processors:
+
+index=botsv3 sourcetype="hardware" | table host processor
+
+Identify Processor Number:
+
+index=botsv3 sourcetype="hardware" host="gacrux.i-09cbc261e84259b52"
+
+Findings:
+
+Hardware inventory logs revealed that Frothly’s web servers are running Intel processors identified as Intel(R) Core(TM) i7-7920HQ CPU @ 3.10GHz. This confirms consistency across web infrastructure and supports asset baseline validation, which is a key SOC responsibility during incident triage and threat hunting.
+
+📸 Evidence: evidence/q3_search_host_processor.png
+
+📸 Evidence: evidene/q3_processor_name.png  
+
 
 Question 4 – Public S3 Bucket Misconfiguration
 
@@ -138,9 +190,83 @@ This represents a cloud misconfiguration, exposing the bucket to public access. 
 
 📸 Evidence: evidence/q4_s3_acl_public.png
 
-📸 Evidence: evidence/q4_search_public_bucket.png
-            
+📸 Evidence: evidence/q4_search_public_bucket.png  
 
+Question 5 - Identify Bud's Username
+Objective: Identify Bud's Username 
+
+SOC Relevance:
+
+Attribution is a core SOC function. Identifying the IAM user responsible for a misconfiguration allows:
+
+- Accurate incident scoping
+- Correct escalation
+- Remediation and access review
+
+SPL Query Used: 
+
+index=botsv3 sourcetype="aws:cloudtrail" eventID="ab45689d-69cd-41e7-8705-5350402cf7ac"
+
+Justification:
+
+As seen in question 4, the misconfiguration was caused by Bud. Using the misconfiguration event, we can identify the username by the field:
+
+userName: bstoll
+
+Findings:
+
+CloudTrail logs confirm that the IAM user bstoll executed the PutBucketAcl API call responsible for modifying S3 access controls. This attribution is essential for SOC incident handling, enabling targeted remediation and IAM policy review.
+
+📸 Evidence: evidence/q5_buds_username.png
+
+Question 6 - Name of Public S3 Bucket
+Objective: Identify the name of the S3 Bucket that Bud made publicly available
+
+SOC Relevance:
+
+Public S3 buckets are a common cloud misconfiguration leading to data exposure. Identifying the affected resource is critical for containment and recovery.
+
+SPL Query: 
+
+index=botsv3 sourcetype="aws:cloudtrail" eventID="ab45689d-69cd-41e7-8705-5350402cf7ac"
+
+Justification: 
+
+As seen in previous questions, the misconfiguration API call has been identified, therefore the name of the S3 bucket can be identified within the JSON package under:
+
+requestParamaters > BucketName: frothlywebcode
+
+Findings:
+
+Analysis of CloudTrail PutBucketAcl events identified the S3 bucket frothlywebcode as having its access controls modified, resulting in public accessibility. This represents a critical cloud security misconfiguration requiring immediate SOC intervention.
+
+📸 Evidence: evidence/q6_bucket_name.png
+
+Question 7 - File Uploaded to Public S3 Bucket
+
+Objective: Identify the name of the file uploaded to the S3 bucket whilst it was publicly accessible.
+
+SOC Relevance:
+
+Detecting object uploads to public buckets helps SOC teams:
+
+- Identify data exposure
+- Detect attacker validation or probing
+- Assess impact
+
+SPL Query Used:
+
+index=botsv3 sourcetype=aws:s3:accesslogs 
+"frothlywebcode"
+"REST.PUT.OBJECT"
+" 200 "
+
+Findings: 
+
+S3 access logs show a successful PUT operation uploading the file OPEN_BUCKET_PLEASE_FIX.txt to the publicly accessible bucket. This confirms that the misconfiguration was externally exploitable and that unauthorized data interaction occurred during the exposure window.
+
+📸 Evidence: evidence/q7_text_file_name.png
+            
 Question 8 – Endpoint OS Deviation
 
 Objective: Identify the endpoint running a different Windows edition.
