@@ -103,11 +103,11 @@ winhostmon
 
 hardware
 
-**Screenshots of ingestion validation are provided in:**
+**📸 Screenshots of ingestion validation are provided in:**
 
-📸 /evidence/dataset_ingestion.png
+[Data Ingestion Screenshot](/evidence/dataset_ingestion.png)
 
-📸 /evidence/validation_of_data_sources.png
+[Source Validation Screenshot](/evidence/validation_of_data_sources.png)
 
 ------------------------------------------------------------------------
 
