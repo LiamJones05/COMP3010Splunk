@@ -138,7 +138,9 @@ Understanding which identities are active is critical for:
 
 - Attribution during incident response
 
-**📸 Evidence:** evidence/q1_iam_users.png  
+**📸 Evidence:** 
+
+- [IAM User Screenshot](evidence/q1_iam_users.png)
 
 
 ### Question 2 - AWS API Activity Without MFA
@@ -156,7 +158,9 @@ Understanding which identities are active is critical for:
 
 Analysis of AWS CloudTrail logs identified API activity executed without multi-factor authentication. The field userIdentity.sessionContext.attributes.mfaAuthenticated explicitly indicates whether MFA was used during the session. Events where this value is set to false, excluding ConsoleLogin, represent elevated risk and would typically trigger SOC alerts under AWS security best practice guidelines.
 
-**📸 Evidence:** evidence/q2_mfa_false.png  
+**📸 Evidence:** 
+
+- [False MFA Screenshot](evidence/q2_mfa_false.png)  
 
 
 ### Question 3 - Processor Number on Web Servers
@@ -187,9 +191,11 @@ Support forensic investigations
 
 Hardware inventory logs revealed that Frothly’s web servers are running Intel processors identified as Intel(R) Core(TM) i7-7920HQ CPU @ 3.10GHz. This confirms consistency across web infrastructure and supports asset baseline validation, which is a key SOC responsibility during incident triage and threat hunting.
 
-**📸 Evidence:** evidence/q3_search_host_processor.png
+**📸 Evidence:** 
 
-**📸 Evidence:** evidene/q3_processor_name.png  
+[Search Host Processor Screenshot](evidence/q3_search_host_processor.png)
+
+[Processor Name Screenshot](evidene/q3_processor_name.png)
 
 
 ### Question 4 – Public S3 Bucket Misconfiguration
@@ -220,9 +226,12 @@ contains an Access Control List (ACL) entry granting READ permissions to the All
 **SOC Relevance:**
 This represents a cloud misconfiguration, exposing the bucket to public access. Such misconfigurations are a leading cause of cloud data breaches and should trigger immediate containment actions.
 
-**📸 Evidence:** evidence/q4_s3_acl_public.png
+**📸 Evidence:** 
 
-**📸 Evidence:** evidence/q4_search_public_bucket.png  
+
+[S3 Bucket Search Screenshot](evidence/q4_s3_acl_public.png)
+
+[Public S3 Bucket Screenshot](evidence/q4_search_public_bucket.png)
 
 ### Question 5 - Identify Bud's Username
 Objective: Identify Bud's Username 
@@ -249,7 +258,9 @@ Findings:
 
 CloudTrail logs confirm that the IAM user bstoll executed the PutBucketAcl API call responsible for modifying S3 access controls. This attribution is essential for SOC incident handling, enabling targeted remediation and IAM policy review.
 
-📸 Evidence: evidence/q5_buds_username.png
+📸 Evidence: 
+
+[Buds Username Screenshot](evidence/q5_buds_username.png)
 
 ### Question 6 - Name of Public S3 Bucket
 Objective: Identify the name of the S3 Bucket that Bud made publicly available
@@ -272,7 +283,9 @@ As seen in previous questions, the misconfiguration API call has been identified
 
 Analysis of CloudTrail PutBucketAcl events identified the S3 bucket frothlywebcode as having its access controls modified, resulting in public accessibility. This represents a critical cloud security misconfiguration requiring immediate SOC intervention.
 
-**📸 Evidence:** evidence/q6_bucket_name.png
+**📸 Evidence:** 
+
+[Public S3 Bucket Name Screenshot](evidence/q6_bucket_name.png)
 
 ### Question 7 - File Uploaded to Public S3 Bucket
 
@@ -297,7 +310,9 @@ Detecting object uploads to public buckets helps SOC teams:
 
 S3 access logs show a successful PUT operation uploading the file OPEN_BUCKET_PLEASE_FIX.txt to the publicly accessible bucket. This confirms that the misconfiguration was externally exploitable and that unauthorized data interaction occurred during the exposure window.
 
-**📸 Evidence:** evidence/q7_text_file_name.png
+**📸 Evidence:**
+
+[Uploaded Text File Screenshot](evidence/q7_text_file_name.png)
             
 ### Question 8 – Endpoint OS Deviation
 
@@ -333,9 +348,11 @@ Correlating with domain context across the dataset confirms the FQDN:
 bstoll-l.froth.ly
 
 
-**📸 Evidence:** evidence/q8_os_deviation.png
+**📸 Evidence:** 
 
-**📸 Evidence:** evidence/q8_BSTOLL_host.png
+[OS Search Screenshot](evidence/q8_os_deviation.png)
+
+[Identify BSTOLL As Host Screenshot](evidence/q8_BSTOLL_host.png)
 
 ## Conclusion Lessons Learned
 
