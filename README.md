@@ -408,8 +408,12 @@ SOC incident response reflections
 ## References
 
 
-[1] Splunk Inc., Boss of the SOC v3 Dataset, 2018.
+[1] Splunk Inc., “Boss of the SOC v3 Dataset Released!”, Splunk Security Blog, Mar. 18, 2020. [Online]. Available: https://www.splunk.com/en_us/blog/security/botsv3-dataset-released.html
 
-[2] NIST, Computer Security Incident Handling Guide (SP 800-61r2).
+[2] P. Cichonski et al., “Computer Security Incident Handling Guide,” NIST Special Publication 800-61r2, U.S. Dept. of Commerce, Aug. 2012. [Online]. Available: https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-61r2.pdf
 
-[3] AWS, CloudTrail User Guide.
+[3] Amazon Web Services, “AWS CloudTrail User Guide,” AWS Documentation. [Online]. Available: https://docs.awscloudtrail/latest/userguide/cloudtrail-user-guide.html
+
+[4] “Security Operations Center (SOC),” TechTarget, May 09, 2025. [Online]. Available: https://www.techtarget.com/searchsecurity/definition/Security-Operations-Center-SOC
+
+
