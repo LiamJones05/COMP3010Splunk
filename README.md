@@ -391,6 +391,11 @@ However, the use of AI also introduces important limitations. AI systems lack fu
 
 From a SOC standards perspective, AI is most effective when used as a **partnered capability**, supporting analysts while accountability, contextual reasoning, and final decision-making remain firmly under human control.
 
+**📸 Evidence of AI assistance:** 
+
+[AI Investigation of Public S3 Bucket](evidence/ai_investigation_of_public_bucket.png)
+[AI Assistance in Identifying False MFA](evidence/ai_investigation_of_MFA.png)
+
 ## Video Presentation
 
 
