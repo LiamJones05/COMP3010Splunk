@@ -394,6 +394,8 @@ From a SOC standards perspective, AI is most effective when used as a **partnere
 **📸 Evidence of AI assistance:** 
 
 [AI Investigation of Public S3 Bucket](evidence/ai_investigation_of_public_bucket.png)
+
+
 [AI Assistance in Identifying False MFA](evidence/ai_investigation_of_MFA.png)
 
 ## Video Presentation
