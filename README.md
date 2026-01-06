@@ -15,7 +15,7 @@
 1. [Introduction](#introduction)
 2. [SOC Roles Incident Handling Reflection](#soc-roles-incident-handling-reflection)
 3. [Installation Data Preparation](#installation-data-preparation)
-4. [Guided Questions Investigation Findings](#guided-questions-investigation-findings)
+4. [Investigation Findings](#investigation-findings)
 5. [Conclusion Lessons Learned](#conclusion-lessons-learned)
 6. [Use of Artificial Intelligence in SOC Investigation ](#use-of-artificial-intelligence-in-soc-investigation)
 7. [Video Presentation](#video-presentation)
@@ -111,25 +111,25 @@ hardware
 
 ------------------------------------------------------------------------
 
-## Guided Questions Investigation Findings
+## Investigation Findings
+
+This section presents the key findings identified during analysis of AWS CloudTrail, S3 access logs, hardware telemetry, and Windows endpoint monitoring data. The investigation focuses on identity activity, cloud configuration changes, asset baseline validation, and endpoint deviations relevant to the observed incident.
 
 
-Note: Each question is answered using SPL queries, supported by screenshots and SOC-relevant interpretation.
+###  AWS Identity Activity Overview
 
-###  Question 1 – AWS IAM Users Observed
+Analysis of AWS CloudTrail logs was conducted to establish a baseline of authenticated identity usage within the environment.
 
-**Objective:** Identify IAM users observed in the environment.
-
-**SPL Query:**
+**Methodology**
 
   index=botsv3 sourcetype="aws:cloudtrail"
   | stats values(userIdentity.userName) as IAM_Users
 
 
 **Findings:**
-The query returns a list of IAM users performing API actions within the AWS environment. This activity represents authenticated identity usage and forms the baseline for detecting anomalous or malicious behaviour.
+Multiple IAM users were observed performing API actions within the AWS environment. Establishing this baseline is essential for identifying anomalous behaviour, attributing actions during incident response, and validating the use of privileged accounts.
 
-**SOC Relevance:**
+**Operational Significance:**
 Understanding which identities are active is critical for:
 
 - Baseline behaviour modelling
@@ -143,53 +143,57 @@ Understanding which identities are active is critical for:
 - [IAM User Screenshot](evidence/q1_iam_users.png)
 
 
-### Question 2 - AWS API Activity Without MFA
+### AWS API Activity Without MFA
 
-**Objective:** Identify the field used to alert that AWS API activity has occurred without MFA
+Further analysis focused on identifying AWS API activity executed without multi-factor authentication (MFA), excluding interactive console logins.
 
-**SOC Relevance:** Monitoring for AWS API activity without MFA is critical because it indicates increased risk of credential compromise. SOC teams commonly alert on CloudTrail events where privileged actions are performed without MFA, excluding interactive console logins, to detect policy violations or attacker persistence.
-
-**SPL Query:**
+**Methodology:**
 
   index=botsv3 sourcetype="aws:cloudtrail"
   | search NOT eventName="ConsoleLogin" userIdentity.sessionContext.attributes.mfaAuthenticated=false
 
 **Findings:**
 
-Analysis of AWS CloudTrail logs identified API activity executed without multi-factor authentication. The field userIdentity.sessionContext.attributes.mfaAuthenticated explicitly indicates whether MFA was used during the session. Events where this value is set to false, excluding ConsoleLogin, represent elevated risk and would typically trigger SOC alerts under AWS security best practice guidelines.
+CloudTrail records confirm the presence of API activity performed without MFA. The field
+userIdentity.sessionContext.attributes.mfaAuthenticated explicitly indicates whether MFA was used for a given session. Events where this value is set to false represent elevated risk and would typically violate cloud security best practices.
+
+**Operational Significance:**
+- Indicates increased exposure to credential compromise
+  
+- Highlights enforcement gaps in IAM security controls
+  
+- Represents a high-confidence alert condition for SOC monitoring
 
 **📸 Evidence:** 
 
 - [False MFA Screenshot](evidence/q2_mfa_false.png)  
 
 
-### Question 3 - Processor Number on Web Servers
+### Web Server Hardware Baseline Validation
 
-**Objective:** Identify the processor number used on the web servers
+Hardware inventory data was reviewed to validate consistency across Frothly's web server infrastructure.
 
-**SOC Relevance:**
-
-- Hardware telemetry helps SOC teams:
-
-- Validate asset baselines
-
-- Identify anomalies or rogue systems
-
-Support forensic investigations
-
-**SPL Query Used:**
+**Methodology:**
 
 **Identify host processors:**
 
   index=botsv3 sourcetype="hardware" | table host processor
 
-**Identify Processor Number:**
+**Targeted Host Inspection:**
 
   index=botsv3 sourcetype="hardware" host="gacrux.i-09cbc261e84259b52"
 
 **Findings:**
 
 Hardware inventory logs revealed that Frothly’s web servers are running Intel processors identified as Intel(R) Core(TM) i7-7920HQ CPU @ 3.10GHz. This confirms consistency across web infrastructure and supports asset baseline validation, which is a key SOC responsibility during incident triage and threat hunting.
+
+**Operational Significance:**
+
+- Confirms asset baseline integrity
+
+- Reduces likelihood of rogue or unauthorised infrastructure
+
+- Supports forensic confidendce during incident analysis
 
 **📸 Evidence:** 
 
@@ -198,11 +202,11 @@ Hardware inventory logs revealed that Frothly’s web servers are running Intel 
 [Processor Name Screenshot](evidene/q3_processor_name.png)
 
 
-### Question 4 – Public S3 Bucket Misconfiguration
+### Identification of S3 Bucket Public Exposure
 
-**Objective:** Identify the API call that enabled public access to an S3 bucket.
+CloudTrail logs revealed a security-relevant modification to an S3 bucket's access controls.
 
-**SPL Query:**
+**Methodology:**
 
   index=botsv3 sourcetype="aws:cloudtrail"
   eventName="PutBucketAcl"
@@ -210,12 +214,11 @@ Hardware inventory logs revealed that Frothly’s web servers are running Intel 
 
 
 **Findings:**
-The event with ID:
+The API call with event ID:
 
 ab45689d-69cd-41e7-8705-5350402cf7ac
 
-
-contains an Access Control List (ACL) entry granting READ permissions to the AllUsers group:
+contains an Access Control List (ACL) entry granting READ permissions to the global AllUsers group:
 
   Grantee: {
     URI: http://acs.amazonaws.com/groups/global/AllUsers
@@ -223,20 +226,30 @@ contains an Access Control List (ACL) entry granting READ permissions to the All
   Permission: READ
 
 
-**SOC Relevance:**
-This represents a cloud misconfiguration, exposing the bucket to public access. Such misconfigurations are a leading cause of cloud data breaches and should trigger immediate containment actions.
+**Operational Significance:**
+
+- Represents a critical cloud misconfiguration
+
+- Exposes stored data to unauthorised access
+
+- Requires immediate containment and remediation actions
 
 **📸 Evidence:** 
-
 
 [S3 Bucket Search Screenshot](evidence/q4_s3_acl_public.png)
 
 [Public S3 Bucket Screenshot](evidence/q4_search_public_bucket.png)
 
-### Question 5 - Identify Bud's Username
-Objective: Identify Bud's Username 
 
-**SOC Relevance:**
+### Attribution of the Configuration Change
+
+The CloudTrail event responsible for the public exposure was examined to identify the originating IAM identity.
+
+**Methodology:**
+
+  index=botsv3 sourcetype="aws:cloudtrail" eventID="ab45689d-69cd-41e7-8705-5350402cf7ac"
+
+**Operational Significance:**
 
 Attribution is a core SOC function. Identifying the IAM user responsible for a misconfiguration allows:
 
@@ -244,38 +257,35 @@ Attribution is a core SOC function. Identifying the IAM user responsible for a m
 - Correct escalation
 - Remediation and access review
 
-**SPL Query Used:**
-
-  index=botsv3 sourcetype="aws:cloudtrail" eventID="ab45689d-69cd-41e7-8705-5350402cf7ac"
-
 **Justification:**
 
-As seen in question 4, the misconfiguration was caused by Bud. Using the misconfiguration event, we can identify the username by the field:
+As seen previously, an S3 misconfiguration was caused by Bud. Using the misconfiguration event, we can identify the username by the field:
 
 userName: bstoll
 
 Findings:
 
-CloudTrail logs confirm that the IAM user bstoll executed the PutBucketAcl API call responsible for modifying S3 access controls. This attribution is essential for SOC incident handling, enabling targeted remediation and IAM policy review.
+CloudTrail logs confirm that the IAM user 'bstoll' executed the PutBucketAcl API call responsible for modifying S3 access controls. This attribution is essential for SOC incident handling, enabling targeted remediation and IAM policy review.
 
 📸 Evidence: 
 
 [Buds Username Screenshot](evidence/q5_buds_username.png)
 
-### Question 6 - Name of Public S3 Bucket
-Objective: Identify the name of the S3 Bucket that Bud made publicly available
+### Identification of the Affected S3 Bucket
 
-**SOC Relevance:**
+The same CloudTrail event was analysed to determine which S3 resource was impacted.
+
+**Operational Significance:**
 
 Public S3 buckets are a common cloud misconfiguration leading to data exposure. Identifying the affected resource is critical for containment and recovery.
 
-**SPL Query:**
+**Methodology:**
 
   index=botsv3 sourcetype="aws:cloudtrail" eventID="ab45689d-69cd-41e7-8705-5350402cf7ac"
 
 **Justification:**
 
-As seen in previous questions, the misconfiguration API call has been identified, therefore the name of the S3 bucket can be identified within the JSON package under:
+As seen previously, the misconfiguration API call has been identified, therefore the name of the S3 bucket can be identified within the JSON package under:
 
 **requestParamaters > BucketName: frothlywebcode**
 
@@ -287,17 +297,9 @@ Analysis of CloudTrail PutBucketAcl events identified the S3 bucket frothlywebco
 
 [Public S3 Bucket Name Screenshot](evidence/q6_bucket_name.png)
 
-### Question 7 - File Uploaded to Public S3 Bucket
+### Evidence of External Interaction With the Public S3 Bucket
 
-**Objective:** Identify the name of the file uploaded to the S3 bucket whilst it was publicly accessible.
-
-**SOC Relevance:**
-
-Detecting object uploads to public buckets helps SOC teams:
-
-- Identify data exposure
-- Detect attacker validation or probing
-- Assess impact
+S3 access logs were analysed to determine whether the exposed bucket was accessed during the exposure window.
 
 **SPL Query Used:**
 
@@ -308,27 +310,29 @@ Detecting object uploads to public buckets helps SOC teams:
 
 **Findings:**
 
-S3 access logs show a successful PUT operation uploading the file OPEN_BUCKET_PLEASE_FIX.txt to the publicly accessible bucket. This confirms that the misconfiguration was externally exploitable and that unauthorized data interaction occurred during the exposure window.
+A successful object upload was observed, confirming external interaction with the bucket. The uploaded file was:
+
+**OPEN_BUCKET_PLEASE_FIX.txt**
+
+This demonstrates that the misconfiguration was exploitable and that the bucket was accessed while publicly exposed.
+
+**Operational Significance:**
+
+- Confirms real-world impact rather than theoretical exposure
+- Indicates potential attacker validation or probing activity.
+- Elevates incident severity and response priority
+
 
 **📸 Evidence:**
 
 [Uploaded Text File Screenshot](evidence/q7_text_file_name.png)
             
-### Question 8 – Endpoint OS Deviation
+### Endpoint Operating System Deviation
 
-**Objective:** Identify the endpoint running a different Windows edition.
-
-**SOC Relevance:**
-OS deviations may indicate:
-
-Privileged workstations
-
-Administrative endpoints
-
-Increased attack surface
+Endpoint telemetry was reviewed to identify deviations in operating system configurations.
 
 
-**SPL Query:**
+**Methodology:**
 
   index=botsv3 sourcetype=winhostmon
   | stats count by OS host
@@ -341,12 +345,20 @@ Most endpoints run Windows 10 Pro, while one host (BSTOLL-L) runs Windows 10 Ent
 
   index=botsv3 host="BSTOLL-L"
   | stats values(host)
-
-
+  
 Correlating with domain context across the dataset confirms the FQDN:
 
 bstoll-l.froth.ly
 
+**Operational Significance:**
+
+OS deviations may indicate:
+
+- Privileged workstations
+
+- Administrative endpoints
+
+- Increased attack surface
 
 **📸 Evidence:** 
 
