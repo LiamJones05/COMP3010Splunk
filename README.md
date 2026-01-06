@@ -414,7 +414,7 @@ From a SOC standards perspective, AI is most effective when used as a **partnere
 
 
 🎥 YouTube Walkthrough (Unlisted):
-Link here
+[Link here](https://youtu.be/4EcNGYmHQMM)
 
 The video demonstrates:
 
